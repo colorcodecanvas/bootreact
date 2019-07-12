@@ -1,0 +1,4 @@
+target
+.idea
+frontend/build/**
+frontend/node_modules/**

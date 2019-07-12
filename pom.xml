@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.colorcodecanvas.bootreact</groupId>
+  <artifactId>bootreact</artifactId>
+  <version>1.0.0</version>
+  <description>POC for a single jar that contains both frontend and backend</description>
+  <packaging>${packaging.type}</packaging>
+
+
+  <properties>
+    <java.version>1.8</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <start-class>com.colorcodecanvas.bootreact.App</start-class>
+  </properties>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.1.6.RELEASE</version>
+    <relativePath/>
+  </parent>
+
+  <profiles>
+    <profile>
+      <id>frontend</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.eirslett</groupId>
+            <artifactId>frontend-maven-plugin</artifactId>
+            <version>1.7.6</version>
+            <configuration>
+              <workingDirectory>frontend</workingDirectory>
+              <installDirectory>target</installDirectory>
+            </configuration>
+            <executions>
+              <execution>
+                <id>install node and npm</id>
+                <goals>
+                  <goal>install-node-and-npm</goal>
+                </goals>
+                <configuration>
+                  <nodeVersion>v12.6.0</nodeVersion>
+                  <npmVersion>6.10.0</npmVersion>
+                </configuration>
+              </execution>
+              <execution>
+                <id>npm install</id>
+                <goals>
+                  <goal>npm</goal>
+                </goals>
+                <configuration>
+                  <arguments>install</arguments>
+                </configuration>
+              </execution>
+              <execution>
+                <id>npm run build</id>
+                <goals>
+                  <goal>npm</goal>
+                </goals>
+                <configuration>
+                  <arguments>run build</arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>jar</id>
+      <activation>
+        <file>
+          <exists>src/main/java/com/colorcodecanvas/bootreact/App.java</exists>
+        </file>
+      </activation>
+      <properties>
+        <packaging.type>jar</packaging.type>
+        <starterTomcat.scope>compile</starterTomcat.scope>
+      </properties>
+    </profile>
+    <profile>
+      <id>war</id>
+      <properties>
+        <packaging.type>war</packaging.type>
+        <starterTomcat.scope>provided</starterTomcat.scope>
+      </properties>
+    </profile>
+  </profiles>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-tomcat</artifactId>
+      <scope>${starterTomcat.scope}</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>${project.artifactId}</finalName>
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+
+          <execution>
+            <phase>generate-resources</phase>
+            <configuration>
+              <tasks>
+                <copy todir="${project.build.directory}/classes/public">
+                  <fileset dir="${project.basedir}/frontend/build"/>
+                </copy>
+                <replace token="/static/js" value="static/js" dir="${project.build.directory}/classes/public">
+                  <include name="**/index.html"/>
+                </replace>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
